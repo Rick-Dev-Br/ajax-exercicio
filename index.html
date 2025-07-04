@@ -27,12 +27,12 @@
                     <span id="following"></span>
                 </li>
             </ul>
-            <a href="#" id="link" class="profile-link">Ver no Github</a>
+            <a href="#" target="_blank" id="link" class="profile-link">Ver no Github</a>
         </div>
     </header>
     <script src="./jquery-3.7.1.min.js"></script>
     <script>
-        $(document).ready(function () {
+        $(document).ready(async function () {
             const profileAvatar = $('#avatar');
             const profileName = $('#nome');
             const profileUsername = $('#username');
@@ -41,19 +41,37 @@
             const following = $('#following');
             const repositorios = $('#repositorios');
 
-            fetch('https://api.github.com/users/Rick-Dev-Br')
-            .then(function(res) {
-                return res.json();
-            })
-            .then(function(data){
+            try {
+                // Faz a requisição à API
+                const response = await fetch('https://api.github.com/users/Rick-Dev-Br');
+                
+                // Verifica se a resposta foi bem sucedida
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`Erro ${response.status}: ${errorData.message || 'Falha na requisição'}`);
+                }
+                
+                // Processa os dados
+                const data = await response.json();
+                
                 profileAvatar.attr("src", data.avatar_url);
-                profileName.text(data.name); 
-                profileUsername.text(data.login); 
+                profileName.text(data.name || data.login);  // Usa login se nome for nulo
+                profileUsername.text(`@${data.login}`); 
                 profileLink.attr('href', data.html_url);
                 followers.text(data.followers);
                 following.text(data.following);
                 repositorios.text(data.public_repos);
-            })
+                
+            } catch (error) {
+                console.error("Erro ao carregar dados:", error);
+                
+                // Mensagem amigável para o usuário
+                profileName.text("Erro ao carregar");
+                profileUsername.text("Tente recarregar a página");
+                
+                // Adiciona mensagem de erro no console e como alerta
+                alert(`Erro: ${error.message}\nVerifique o console para mais detalhes`);
+            }
         })
     </script>
 </body>
